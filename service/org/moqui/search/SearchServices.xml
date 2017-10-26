@@ -244,6 +244,7 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="pageIndex" type="Integer" default="0"/>
             <parameter name="pageSize" type="Integer" default="20"/>
             <parameter name="flattenDocument" type="Boolean" default="true"/>
+            <parameter name="highlightMatchedFields" type="Boolean" />
         </in-parameters>
         <out-parameters>
             <parameter name="documentList" type="List">
@@ -273,6 +274,7 @@ along with this software (see the LICENSE.md file). If not, see
             import org.moqui.context.ExecutionContext
             import org.moqui.elasticsearch.ElasticSearchUtil
             import org.elasticsearch.search.fetch.subphase.highlight.HighlightField
+            import java.util.List
             ExecutionContext ec = context.ec
             Client elasticSearchClient = ec.getTool("ElasticSearch", Client.class)
 
@@ -280,7 +282,6 @@ along with this software (see the LICENSE.md file). If not, see
             sizeLimit = pageSize
 
             documentList = []
-            HighlightBuilder hb = new HighlightBuilder().field("*").requireFieldMatch(false)
             // make sure index exists
             ElasticSearchUtil.checkCreateIndex(indexName, ec)
 
@@ -289,7 +290,9 @@ along with this software (see the LICENSE.md file). If not, see
                     .setQuery(QueryBuilders.queryStringQuery((String) queryString))
                     .setFrom(fromOffset).setSize(sizeLimit)
                     .setFetchSource(true)
-                    .highlighter(hb)
+            if (highlightMatchedFields) {
+                srb = srb.highlighter(new HighlightBuilder().field("*").requireFieldMatch(false))
+            }
             if (documentType) srb.setTypes((String) documentType)
             for (String orderByField in orderByFields) {
                 boolean ascending = true
@@ -313,14 +316,19 @@ along with this software (see the LICENSE.md file). If not, see
                 document._id = hit.getId()
                 // how to get timestamp? doesn't seem to be in API: document._timestamp = hit.get?
                 document._version = hit.getVersion()
-                // Creditsafe - gets the first highlighted field, so we can see where this is matched
-                for(Map.Entry entry : hit.getHighlightFields()) {
-                    document._highlightedField = entry.getValue().getName()
-                    //logger.info("${entry.getValue()}")
-                    break;
+                def highlightedFields = []
+                if(highlightMatchedFields) {
+                    for(Map.Entry entry : hit.getHighlightFields()) {
+                        def value = entry.getValue().getName()
+                        highlightedFields.add(value)
+                        //logger.info("${entry.getValue()}")
+                    }
                 }
-                
-                documentList.add(flattenDocument ? flattenNestedMap(document) : document)
+                document = flattenDocument ? flattenNestedMap(document) : document
+                if(highlightMatchedFields) {
+                    document._highlightedFields = highlightedFields
+                }
+                documentList.add(document)
             }
 
             // get the total search count
