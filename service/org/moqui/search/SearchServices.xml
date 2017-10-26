@@ -57,7 +57,7 @@ along with this software (see the LICENSE.md file). If not, see
             BulkRequestBuilder bulkBuilder = elasticSearchClient.prepareBulk()
             int curBulkDocs = 0
             for (Map document in documentList) {
-                // logger.warn("====== Indexing document: ${document}")
+                 logger.warn("====== Indexing document: ${document}")
 
                 String _index = document._index
                 String _type = document._type
@@ -269,9 +269,10 @@ along with this software (see the LICENSE.md file). If not, see
             import org.elasticsearch.search.SearchHit
             import org.elasticsearch.search.SearchHits
             import org.elasticsearch.search.sort.SortOrder
+            import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
             import org.moqui.context.ExecutionContext
             import org.moqui.elasticsearch.ElasticSearchUtil
-
+            import org.elasticsearch.search.fetch.subphase.highlight.HighlightField
             ExecutionContext ec = context.ec
             Client elasticSearchClient = ec.getTool("ElasticSearch", Client.class)
 
@@ -279,14 +280,16 @@ along with this software (see the LICENSE.md file). If not, see
             sizeLimit = pageSize
 
             documentList = []
-
+            HighlightBuilder hb = new HighlightBuilder().field("*").requireFieldMatch(false)
             // make sure index exists
             ElasticSearchUtil.checkCreateIndex(indexName, ec)
 
             // get the search hits
             SearchRequestBuilder srb = elasticSearchClient.prepareSearch().setIndices(indexName)
-                    .setQuery(QueryBuilders.queryStringQuery((String) queryString)).setFrom(fromOffset).setSize(sizeLimit)
+                    .setQuery(QueryBuilders.queryStringQuery((String) queryString))
+                    .setFrom(fromOffset).setSize(sizeLimit)
                     .setFetchSource(true)
+                    .highlighter(hb)
             if (documentType) srb.setTypes((String) documentType)
             for (String orderByField in orderByFields) {
                 boolean ascending = true
@@ -310,6 +313,13 @@ along with this software (see the LICENSE.md file). If not, see
                 document._id = hit.getId()
                 // how to get timestamp? doesn't seem to be in API: document._timestamp = hit.get?
                 document._version = hit.getVersion()
+                // Creditsafe - gets the first highlighted field, so we can see where this is matched
+                for(Map.Entry entry : hit.getHighlightFields()) {
+                    document._highlightedField = entry.getValue().getName()
+                    //logger.info("${entry.getValue()}")
+                    break;
+                }
+                
                 documentList.add(flattenDocument ? flattenNestedMap(document) : document)
             }
 
