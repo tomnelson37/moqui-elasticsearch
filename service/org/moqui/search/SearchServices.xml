@@ -164,7 +164,7 @@ along with this software (see the LICENSE.md file). If not, see
                     // NOTE: doing multiple threads doesn't make a big difference, the bulk indexing makes a huge difference, so effectively disabling this in the if expression
                     if (false) {
                         int numThreads = Runtime.getRuntime().availableProcessors() / 2
-                        ec.logger.info("Indexing ${docListSize} type ${dfDoc.dataDocumentId} documents for feed ${dataFeedId} with ${numThreads} threads")
+                        // ec.logger.info("Indexing ${docListSize} type ${dfDoc.dataDocumentId} documents for feed ${dataFeedId} with ${numThreads} threads")
                         int subListSize = docListSize / numThreads
                         ArrayList<Future> futureList = new ArrayList<>(numThreads)
                         for (int i = 0; i < numThreads - 1; i++) {
@@ -179,7 +179,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 .callFuture())
                         for (Future future in futureList) future.get()
                     } else {
-                        ec.logger.info("Indexing ${docListSize} type ${dfDoc.dataDocumentId} documents for feed ${dataFeedId}")
+                        // ec.logger.info("Indexing ${docListSize} type ${dfDoc.dataDocumentId} documents for feed ${dataFeedId}")
                         ec.service.sync().name(feedReceiveServiceName).parameter("documentList", documentList).call()
                     }
                     documentsIndexed += documentList.size()
