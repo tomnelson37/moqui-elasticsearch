@@ -57,7 +57,7 @@ along with this software (see the LICENSE.md file). If not, see
             BulkRequestBuilder bulkBuilder = elasticSearchClient.prepareBulk()
             int curBulkDocs = 0
             for (Map document in documentList) {
-                 logger.warn("====== Indexing document: ${document}")
+                 // logger.warn("====== Indexing document: ${document}")
 
                 String _index = document._index
                 String _type = document._type
