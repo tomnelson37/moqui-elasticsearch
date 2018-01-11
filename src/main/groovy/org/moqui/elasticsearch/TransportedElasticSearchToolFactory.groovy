@@ -78,7 +78,6 @@ class TransportedElasticSearchToolFactory implements ToolFactory<Client> {
         Settings.Builder settings = Settings.builder()
         ExecutionContextFactoryImpl ecfi = (ExecutionContextFactoryImpl)ecf;
         def toolsNode = ecfi.getConfXmlRoot().first("tools")
-        println(toolsNode)
         String server = toolsNode.attribute("elastic-server");
         String port = toolsNode.attribute("elastic-port");
         if(!server || !port) {
