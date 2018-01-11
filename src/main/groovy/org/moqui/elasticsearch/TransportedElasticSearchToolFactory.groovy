@@ -30,6 +30,7 @@ import org.moqui.elasticsearch.ElasticSearchToolFactory
 /** NOTE: embedded ElasticSearch may soon go away, see: https://www.elastic.co/blog/elasticsearch-the-server */
 @CompileStatic
 class TransportedElasticSearchToolFactory extends ElasticSearchToolFactory  {
+    protected final static Logger logger = LoggerFactory.getLogger(TransportedElasticSearchToolFactory.class)
     /** Default empty constructor */
     TransportedElasticSearchToolFactory() { }
     @Override
