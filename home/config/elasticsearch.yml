@@ -94,12 +94,17 @@
 #
 #action.destructive_requires_name: true
 
+
 # ========== Settings added for Moqui ==========
 
 # CORS settings for local testing only
 # http.cors.enabled: true
 # http.cors.allow-origin: '*'
+http.enabled: false
 
+cluster.name: MoquiElasticSearch
+transport.type: local
+discovery.type: local
 # how to do this in 5.0.0? discovery.zen.ping.multicast.enabled: false
 
 # ---------------------------------- Script ------------------------------------
@@ -127,4 +132,4 @@ script.engine.groovy.inline.aggs: on
 
 # moqui-elasticsearch now uses bulk indexing for everything, so use a bigger queue
 # default is 50 for bulk queue, default is 200 for index queue
-
+thread_pool.bulk.queue_size: 200
