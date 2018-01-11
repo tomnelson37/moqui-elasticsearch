@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 /** NOTE: embedded ElasticSearch may soon go away, see: https://www.elastic.co/blog/elasticsearch-the-server */
 @CompileStatic
 class ElasticSearchToolFactory implements ToolFactory<Client> {
-    protected final static Logger logger = LoggerFactory.getLogger(ElasticSearchToolFactory.class)
+    protected final static Logger logger = LoggerFactory.getLogger(TransportedElasticSearchToolFactory.class)
     final static String TOOL_NAME = "ElasticSearch"
 
     protected ExecutionContextFactory ecf = null
