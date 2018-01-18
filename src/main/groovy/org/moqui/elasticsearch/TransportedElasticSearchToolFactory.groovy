@@ -28,7 +28,7 @@ import org.moqui.impl.context.ExecutionContextFactoryImpl
 /** NOTE: embedded ElasticSearch may soon go away, see: https://www.elastic.co/blog/elasticsearch-the-server */
 @CompileStatic
 class TransportedElasticSearchToolFactory implements ToolFactory<Client> {
-    protected final static Logger logger = LoggerFactory.getLogger(ElasticSearchToolFactory.class)
+    protected final static Logger logger = LoggerFactory.getLogger(TransportedElasticSearchToolFactory.class)
     final static String TOOL_NAME = "ElasticSearch"
 
     protected ExecutionContextFactory ecf = null
