@@ -2,7 +2,7 @@
 <!-- No copyright or license for configuration file, details here are not considered a creative work. -->
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.0.xsd">
     <tools>
-        <tool-factory class="org.moqui.elasticsearch.ElasticSearchToolFactory" init-priority="15" disabled="false"/>
-        <tool-factory class="org.moqui.elasticsearch.TransportedElasticSearchToolFactory" init-priority="15" disabled="true"/>
+        <tool-factory class="org.moqui.elasticsearch.ElasticSearchToolFactory" init-priority="15" disabled="true"/>
+        <tool-factory class="org.moqui.elasticsearch.TransportedElasticSearchToolFactory" init-priority="15" disabled="false"/>
     </tools>
 </moqui-conf>
