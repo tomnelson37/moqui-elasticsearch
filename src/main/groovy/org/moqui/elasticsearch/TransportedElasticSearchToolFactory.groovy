@@ -23,18 +23,29 @@ import org.slf4j.LoggerFactory
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.moqui.impl.context.ExecutionContextFactoryImpl
-import org.moqui.elasticsearch.ElasticSearchToolFactory
-
 /** ElasticSearch Client is used for indexing and searching documents */
 /** NOTE: embedded ElasticSearch may soon go away, see: https://www.elastic.co/blog/elasticsearch-the-server */
 @CompileStatic
-class TransportedElasticSearchToolFactory extends ElasticSearchToolFactory  {
-    protected final static Logger logger = LoggerFactory.getLogger(TransportedElasticSearchToolFactory.class)
+class TransportedElasticSearchToolFactory implements ToolFactory<Client> {
+    protected final static Logger logger = LoggerFactory.getLogger(ElasticSearchToolFactory.class)
+    final static String TOOL_NAME = "ElasticSearch"
+
+    protected ExecutionContextFactory ecf = null
+
+    /** ElasticSearch Node */
+    protected org.elasticsearch.node.Node elasticSearchNode
+    /** ElasticSearch Client */
+    protected Client elasticSearchClient
+
     /** Default empty constructor */
     TransportedElasticSearchToolFactory() { }
+
     @Override
-    void init(ExecutionContextFactory ecf)  {
+    String getName() { return TOOL_NAME }
+    @Override
+    void init(ExecutionContextFactory ecf) {
+        this.ecf = ecf
+
         // set the ElasticSearch home (for config, modules, plugins, scripts, etc), data, and logs directories
         // see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-dir-layout.html
         // NOTE: could use getPath() instead of toExternalForm().substring(5) for file specific URLs, will work on Windows?
@@ -66,19 +77,36 @@ class TransportedElasticSearchToolFactory extends ElasticSearchToolFactory  {
 
         // build the ES node
         Settings.Builder settings = Settings.builder()
-        ExecutionContextFactoryImpl ecfi = (ExecutionContextFactoryImpl)ecf;
-        def toolsNode = ecfi.getConfXmlRoot().first("tools")
-        String server = toolsNode.attribute("elastic-server");
-        String port = toolsNode.attribute("elastic-port");
-        if(!server || !port) {
-            logger.error("Could not find elastic-server/elastic-port attribute on the tools element of the conf. Using the embedded version")
-            super.init(ecf)
-            return
-        }
-        logger.info("Starting elastic search transport client running against ${server}:${port}")
-        settings.put("cluster.name", "MoquiElasticSearch")    
-
-        Client client = new PreBuiltTransportClient(settings.build()).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(server), port.toInteger()));
+        // settings.put("path.home", pathHome)
+        // settings.put("path.data", pathData)
+        // settings.put("path.logs", pathLogs)
+        settings.put("cluster.name", "MoquiElasticSearch")
+        //settings.put("network.publish_host","192.168.1.45")
+        // System.setProperty("http.proxyHost", "192.168.1.206");
+        // System.setProperty("http.proxyPort", "8080");
+        Client client = new PreBuiltTransportClient(settings.build()).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
         elasticSearchClient = client
     }
+    @Override
+    void preFacadeInit(ExecutionContextFactory ecf) { }
+
+    @Override
+    Client getInstance(Object... parameters) {
+        if (elasticSearchClient == null) throw new IllegalStateException("ElasticSearchToolFactory not initialized")
+        return elasticSearchClient
+    }
+
+    @Override
+    void destroy() {
+        if (elasticSearchNode != null) try {
+            elasticSearchNode.close()
+            while (!elasticSearchNode.isClosed()) {
+                logger.info("ElasticSearch still closing")
+                this.wait(1000)
+            }
+            logger.info("ElasticSearch closed")
+        } catch (Throwable t) { logger.error("Error in ElasticSearch node close", t) }
+    }
+
+    ExecutionContextFactory getEcf() { return ecf }
 }
