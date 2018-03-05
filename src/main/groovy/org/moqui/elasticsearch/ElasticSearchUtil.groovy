@@ -138,7 +138,7 @@ class ElasticSearchUtil {
                         if (subObject == null) {
                             subProperties = new HashMap<>()
                             // NOTE: not doing type:'nested', ES docs say arrays should have it but they go into separate documents and term/facet searches fail!
-                            subObject = [properties:subProperties] as Map<String, Object>
+                            subObject = [properties:subProperties, type:'nested', include_in_parent:true] as Map<String, Object>
                             currentProperties.put(objectName, subObject)
                         } else {
                             subProperties = (Map<String, Object>) subObject.get("properties")
